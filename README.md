@@ -76,6 +76,18 @@ rejects cross-dimension comparisons (kg vs ml) instead of silently converting.
 `validate_data()` runs at boot and fails loudly if any recipe line's unit
 dimension disagrees with its ingredient's stock unit.
 
+Because the scenario tests only anchor *relative* correctness, four probe
+tests pin the absolute scale: the SI kilo definitions, a 999/1001 g bracket
+that rules out any decade slip, a kg-vs-l drift check, and a source-level
+tripwire that reads `BASE_FACTOR` out of `logic.py` and asserts the shipped
+1000s. Verified by sabotage: temporarily setting kg = 100 g fails 10 tests
+across conversion, availability, and deduction.
+
+Beyond pytest, the running app was driven in headless Chrome with real
+clicks: search filtering, an Order click updating both panels from one
+response (cashews 1.5 → 1.44 kg and korma 20 → 19 makeable portions), the
+inline editor, and the delete guard's 409 surfacing in the UI.
+
 **What would have to be wrong for the tests to still pass anyway:** if the
 *same* wrong factor (e.g. 100 instead of 1000) lived in `to_base_units` and in
 my hand arithmetic, both would agree and the suite would stay green — the tests
@@ -89,7 +101,5 @@ verified by hand in the browser (restock → dish flips, order → qty drops).
 1. Portion-aware availability (`min_portions > 0` ⇒ available) behind the
    reorder flag — the critique above, actually shipped.
 2. Edit name/unit safely by migrating recipes in the same write.
-3. A real probe test that greps `to_base_units` for the 1000 factor, so even
-   the "same wrong factor everywhere" hole is covered.
-4. Second-tab liveness via polling or SSE (right now a second tab refreshes
+3. Second-tab liveness via polling or SSE (right now a second tab refreshes
    state on its own actions only).
