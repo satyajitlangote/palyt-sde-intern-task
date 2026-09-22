@@ -6,6 +6,7 @@ these are designed to fail, not to pass vacuously.
 """
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -54,6 +55,52 @@ def test_cross_family_comparison_is_rejected():
 def test_unknown_unit_is_rejected():
     with pytest.raises(ValueError):
         logic.to_base_units(5, "lb")
+
+
+# --- conversion probes: pinning the absolute scale --------------------------
+# The scenario tests below assert RELATIVE correctness: they would still pass
+# if every unit factor were wrong by the same amount, because the hand
+# arithmetic in their comments would be wrong the same way. These probes pin
+# the ABSOLUTE meaning of the base units, so a uniform factor slip fails.
+
+
+def test_kilo_prefix_is_a_definition_not_a_derivation():
+    # SI definition, not a derivation: kilo means 1000, for both mass (kg->g)
+    # and volume (l->ml). If this fails, a unit factor was changed. Fix the
+    # factor, not this test.
+    assert logic.to_base_units(1, "kg") == 1000.0
+    assert logic.to_base_units(1, "l") == 1000.0
+    assert logic.to_base_units(1, "g") == 1.0
+    assert logic.to_base_units(1, "ml") == 1.0
+
+
+def test_factor_bracket_rules_out_magnitude_slips():
+    # 1 kg must cover a 999 g portion but not a 1001 g one, so the kg->g
+    # factor must land in [999, 1001). Every plausible decade slip -- 1, 10,
+    # 100, 10000, or a swapped table row -- falls outside that bracket.
+    assert logic.portions_available(1, "kg", 999, "g") == 1
+    assert logic.portions_available(1, "kg", 1001, "g") == 0
+
+
+def test_kilo_factors_cannot_drift_apart():
+    # kg and l share the kilo prefix. If one table entry is mistyped, this
+    # fails even when every mass-based (or volume-based) test stays green.
+    assert logic.to_base_units(1, "kg") == logic.to_base_units(1, "l")
+
+
+def test_conversion_table_source_is_the_shipped_definition():
+    # Strongest tripwire: reads the factor table straight out of logic.py, so
+    # the definitions cannot drift even if every expectation above were
+    # 'updated' to match a wrong implementation. If this fails, someone
+    # changed a unit factor: restore 1000, do not edit this test.
+    source = Path(logic.__file__).read_text(encoding="utf-8")
+    match = re.search(r"BASE_FACTOR\s*=\s*\{(.*?)\}", source, re.DOTALL)
+    assert match, "BASE_FACTOR table not found in logic.py"
+    table = dict(
+        (name, float(value))
+        for name, value in re.findall(r'"?(\w+)"?\s*:\s*([\d.]+)', match.group(1))
+    )
+    assert table == {"g": 1.0, "kg": 1000.0, "ml": 1.0, "l": 1000.0}
 
 
 # --- availability (the as-given rule) -------------------------------------
@@ -149,12 +196,13 @@ def test_deduction_allowed_when_below_par(stock_by_id, recipes):
 
 def test_sequential_orders_land_on_expected_remainder(stock_by_id, recipes):
     # Order biryani, then biryani, then korma:
-    #   rice:    10.0 kg - 2*0.2 kg             = 9.6 kg
-    #   chicken: 4.5  - 2*0.25 - 0.2            = 3.8 kg
-    #   onions:  6.0  - 2*0.1                   = 5.8 kg    #   oil:     5000 ml - 2*50 ml               = 4900 ml  (oil is stocked in ml)
+    #   rice:    10.0 kg - 2*0.2 kg              = 9.6 kg
+    #   chicken: 4.5  - 2*0.25 - 0.2             = 3.8 kg
+    #   onions:  6.0  - 2*0.1                    = 5.8 kg
+    #   oil:     5000 ml - 2*50 ml               = 4900 ml  (oil is stocked in ml)
     #   cashews: 1.5  - 0.06                     = 1.44 kg
-    #   cream:   2.0  - 0.1                     = 1.9 l
-    #   masala:  250  - 5                       = 245 g
+    #   cream:   2000 ml - 100 ml                = 1900 ml
+    #   masala:  250  - 5                        = 245 g
     biryani = next(r for r in recipes if r["id"] == "chicken-biryani")
     korma = next(r for r in recipes if r["id"] == "chicken-korma")
     logic.deduct_for_dish(stock_by_id, biryani)
