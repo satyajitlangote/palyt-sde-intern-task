@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Kitchen Stock + Menu</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Kitchen Stock &amp; Menu Sync</h1>
+    <span id="conn-status"></span>
+  </header>
+
+  <main>
+    <!-- ============ left: staff stock panel ============ -->
+    <section id="stock-panel">
+      <h2>Stock</h2>
+
+      <form id="add-form">
+        <input id="f-name" type="text" placeholder="Name" />
+        <input id="f-qty" type="text" inputmode="decimal" placeholder="Qty" />
+        <select id="f-unit">
+          <option value="g">g</option>
+          <option value="kg">kg</option>
+          <option value="ml">ml</option>
+          <option value="l">l</option>
+        </select>
+        <input id="f-par" type="text" inputmode="decimal" placeholder="Par" />
+        <button type="submit">Add ingredient</button>
+        <span id="form-error" class="error"></span>
+      </form>
+
+      <input id="search" type="search" placeholder="Search ingredients…" />
+
+      <table id="stock-table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Qty</th><th>Unit</th><th>Par</th>
+            <th>Used by</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="stock-body"></tbody>
+      </table>
+    </section>
+
+    <!-- ============ right: customer menu panel ============ -->
+    <section id="menu-panel">
+      <h2>Menu</h2>
+      <div id="menu-list"></div>
+    </section>
+  </main>
+
+  <div id="flash"></div>
+  <script src="app.js"></script>
+</body>
+</html>

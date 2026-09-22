@@ -1,0 +1,77 @@
+/* Clear beats polished. Grid = the two panels side by side. */
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0 1rem;
+  color: #1a1a1a;
+}
+header h1 { font-size: 1.2rem; display: inline-block; margin-right: 1rem; }
+#conn-status { font-size: 0.8rem; color: #777; }
+
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+h2 { font-size: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+
+/* stock panel */
+#add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+#add-form input, #add-form select { padding: 0.3rem; }
+#f-name { width: 10rem; }
+#f-qty, #f-par { width: 4.5rem; }
+#add-form button { padding: 0.3rem 0.8rem; cursor: pointer; }
+.error { color: #b00020; font-size: 0.8rem; }
+#search { width: 100%; padding: 0.35rem; margin-bottom: 0.5rem; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid #e3e3e3; }
+th { font-weight: 600; color: #444; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.used-by { color: #777; font-size: 0.78rem; }
+.low { color: #b45309; font-weight: 600; }
+
+.row-actions button { margin-right: 0.25rem; }
+.editing input { width: 4.5rem; }
+
+/* menu panel */
+.dish {
+  border: 1px solid #ddd;
+  border-left: 6px solid #2e7d32;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.dish.unavailable { border-left-color: #b00020; background: #faf5f5; }
+.dish .dish-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.dish .price { font-variant-numeric: tabular-nums; }
+.dish .note { font-size: 0.78rem; color: #777; margin: 0.15rem 0 0.4rem; }
+.dish .warn { color: #b45309; }
+.dish button { cursor: pointer; }
+.dish.unavailable button { background: #eee; color: #999; border: 1px solid #ccc; }
+
+#flash {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #2c3e50;
+  color: #fff;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  max-width: 28rem;
+}
+#flash.show { opacity: 1; }
+#flash.error { background: #b00020; }
