@@ -1,11 +1,13 @@
 """Throwaway live smoke test: drives the running Flask server over HTTP.
 
 Complements test_logic.py by verifying the wiring (routes, persistence,
-status codes) and the same hand-computed numbers end to end. Run withthe server already up:  .venv/Scripts/python smoke_test.py
+status codes) and the same hand-computed numbers end to end. Start the
+server first, then:  .venv/Scripts/python smoke_test.py
 
 Expects PRISTINE state: every expected number is anchored to the shipped
 stock.json. A second run without restoring mutates state and cascades
-failures (proven the hard way).
+failures (proven the hard way) - require_server() now refuses to start
+rather than letting that read as a server bug.
 """
 
 import json
@@ -38,7 +40,37 @@ def find(items, id_):
     return next(i for i in items if i["id"] == id_)
 
 
+def require_server():
+    """Fail fast with the fix, instead of a ConnectionRefusedError traceback.
+
+    This test drives a live server, so a refused connection is always the same
+    mistake with the same one-line fix. Verifies the server is reachable *and*
+    that stock.json is pristine before any mutation, since every number below
+    is anchored to the shipped data.
+    """
+    try:
+        with urllib.request.urlopen(BASE + "/api/stock", timeout=5) as res:
+            snap = json.loads(res.read().decode())
+    except (urllib.error.URLError, OSError) as exc:
+        reason = getattr(exc, "reason", exc)
+        print(f"cannot reach a server at {BASE}  [{reason}]")
+        print("this test drives a LIVE server - start it first, in another terminal:")
+        print("    .venv/Scripts/python app.py    # macOS/Linux: .venv/bin/python app.py")
+        raise SystemExit(2)
+
+    # Every number below is anchored to the shipped file, so a file left
+    # mutated by an earlier run fails in confusing, cascading ways. Catch that
+    # up front rather than letting it look like a server bug.
+    cashews = next((i for i in snap["stock"] if i["id"] == "cashews"), None)
+    if cashews is None or cashews["qty"] != 1.5:
+        print("the server is up, but stock.json has been mutated since it shipped:")
+        print("every expected number below is anchored to the pristine file, so")
+        print("restore stock.json before running, or expect cascading failures.")
+        raise SystemExit(2)
+
+
 # --- baseline snapshot ------------------------------------------------------
+require_server()
 s, snap = call("GET", "/api/stock")
 cashews = find(snap["stock"], "cashews")
 tikka = find(snap["menu"], "paneer-tikka")

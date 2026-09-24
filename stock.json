@@ -9,21 +9,21 @@
   {
     "id": "cashews",
     "name": "Cashews",
-    "qty": 1.38,
+    "qty": 1.5,
     "unit": "kg",
     "par": 1
   },
   {
     "id": "butter",
     "name": "Butter",
-    "qty": 750,
+    "qty": 240.0,
     "unit": "g",
     "par": 250
   },
   {
     "id": "cream",
     "name": "Cream",
-    "qty": 1500.0,
+    "qty": 2000,
     "unit": "ml",
     "par": 500
   },
@@ -58,9 +58,9 @@
   {
     "id": "chicken",
     "name": "Chicken",
-    "qty": 3.5,
+    "qty": 4.5,
     "unit": "kg",
-    "par": 2.0
+    "par": 2
   },
   {
     "id": "paneer",
@@ -72,7 +72,7 @@
   {
     "id": "garam-masala",
     "name": "Garam Masala",
-    "qty": 225.0,
+    "qty": 250,
     "unit": "g",
     "par": 50
   },
@@ -107,7 +107,7 @@
   {
     "id": "flour",
     "name": "Flour",
-    "qty": 5,
+    "qty": 0.92,
     "unit": "kg",
     "par": 1
   },
@@ -121,7 +121,7 @@
   {
     "id": "salt",
     "name": "Salt",
-    "qty": 1,
+    "qty": 0.932,
     "unit": "kg",
     "par": 0.2
   },
@@ -135,15 +135,15 @@
   {
     "id": "lemon-juice",
     "name": "Lemon Juice",
-    "qty": 500,
+    "qty": 500.0,
     "unit": "ml",
-    "par": 100
+    "par": 100.0
   },
   {
-    "id": "basmati",
-    "name": "Basmati",
+    "id": "jeera-rice",
+    "name": "Jeera Rice",
     "unit": "kg",
-    "qty": 5.0,
-    "par": 2.0
+    "qty": 10.0,
+    "par": 8.0
   }
 ]
