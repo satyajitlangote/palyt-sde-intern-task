@@ -5,7 +5,7 @@ stock, and the order flow connecting them. Flask + vanilla JS, no build step.
 State is in-memory at request time and written back to `stock.json` on every
 mutation, so a refresh (or a second tab) sees the same numbers.
 
-## Run
+## Setup & Run
 
 ```bash
 python -m venv .venv
@@ -14,10 +14,15 @@ python -m venv .venv
 .venv/Scripts/python app.py                     # serves http://127.0.0.1:5000
 ```
 
-Open two panels in one page: staff stock management on the left, the customer
-menu on the right. Every mutation returns a fresh `{stock, menu}` snapshot and
-both panels redraw from it — restock an ingredient and watch a dish come back
-with no reload.
+Open `index.html` in two browser tabs (or serve the directory), then on one
+panel add/remove/restock ingredients — the customer menu on the other panel
+recomputes live from the same `{stock, menu}` snapshot, no reload needed.
+
+## Demo recording
+
+`recordings/pytl.mp4` (optional) shows the live stock + menu flow. It is large
+and intentionally left out of git; re-record with your screen-capture tool and
+drop the file into `recordings/` if you want it versioned.
 
 ## Layout
 
