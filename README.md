@@ -24,6 +24,18 @@ recomputes live from the same `{stock, menu}` snapshot, no reload needed.
 and intentionally left out of git; re-record with your screen-capture tool and
 drop the file into `recordings/` if you want it versioned.
 
+## Tests
+
+- `pytest test_logic.py` — the canonical suite (26 tests). These are the
+  ones hand-anchored to the shipped `stock.json`/`recipes.json`.
+
+- `smoke_test.py` — a **throwaway** end-to-end smoke test that drives a live
+  server with hardcoded numbers. Its expectations were written for an earlier
+  stock baseline and are now out of sync with the shipped data, so it is not
+  part of the canonical run. If you re-run it, anchor its expectations to the
+  current `stock.json` (e.g. chicken 3.75 kg, korma binding = chicken at 18
+  min-portions) or disable it.
+
 ## Layout
 
 - `logic.py` — all domain rules: unit conversion, availability, deduction, used-by
