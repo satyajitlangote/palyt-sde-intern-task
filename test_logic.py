@@ -127,11 +127,13 @@ def test_blocked_dish_still_has_makeable_portions(stock_by_id, recipes):
 def test_available_dish_reports_no_blockers(stock_by_id, recipes):
     biryani = next(r for r in recipes if r["id"] == "chicken-biryani")
     status = logic.dish_status(biryani, stock_by_id)
+    # Binding constraint is chicken: 3.75 kg = 3750 g / 250 g-per-portion = 15.
     assert status == {
         "available": True,
         "below_par": [],
-        # rice 10000/200=50, chicken 4500/250=18, onions 6000/100=60, oil 5000/50=100
-        "min_portions": 18,
+        # rice 9.4 kg = 9400 g -> 47, chicken 3.75 kg = 3750 g -> 15,
+        # onions 5.7 kg = 5700 g -> 57, oil 4850 ml -> 97
+        "min_portions": 15,
     }
 
 
@@ -163,13 +165,13 @@ def test_menu_lists_every_dish_in_recipe_order(stock_by_id, recipes):
 
 
 def test_order_deducts_across_the_unit_scale(stock_by_id, recipes):
-    # Korma: cashews 1.5 kg -> 1.44 kg, cream 2000 -> 1900 ml,
-    # chicken 4.5 kg -> 4.3 kg, garam masala 250 -> 245 g.
+    # Korma: cashews 1.5 kg -> 1.44 kg, cream 2000 ml -> 1900 ml,
+    # chicken 3.75 kg -> 3.5 kg, garam masala 250 g -> 245 g.
     korma = next(r for r in recipes if r["id"] == "chicken-korma")
     logic.deduct_for_dish(stock_by_id, korma)
     assert stock_by_id["cashews"]["qty"] == pytest.approx(1.44)
     assert stock_by_id["cream"]["qty"] == pytest.approx(1900)
-    assert stock_by_id["chicken"]["qty"] == pytest.approx(4.3)
+    assert stock_by_id["chicken"]["qty"] == pytest.approx(3.55)
     assert stock_by_id["garam-masala"]["qty"] == pytest.approx(245)
 
 
@@ -196,22 +198,23 @@ def test_deduction_allowed_when_below_par(stock_by_id, recipes):
 
 def test_sequential_orders_land_on_expected_remainder(stock_by_id, recipes):
     # Order biryani, then biryani, then korma:
-    #   rice:    10.0 kg - 2*0.2 kg              = 9.6 kg
-    #   chicken: 4.5  - 2*0.25 - 0.2             = 3.8 kg
-    #   onions:  6.0  - 2*0.1                    = 5.8 kg
-    #   oil:     5000 ml - 2*50 ml               = 4900 ml  (oil is stocked in ml)
+    #   rice:    9.4 kg - 2*0.2 kg               = 9.0 kg
+    #   chicken: 3.75 - 2*0.25 - 0.2             = 3.05 kg
+    #   onions:  5.7  - 2*0.1                    = 5.5 kg
+    #   oil:     4850 ml - 2*50 ml               = 4750 ml  (oil is stocked in ml)
     #   cashews: 1.5  - 0.06                     = 1.44 kg
     #   cream:   2000 ml - 100 ml                = 1900 ml
     #   masala:  250  - 5                        = 245 g
+    # (biryani deducts chicken 250 g/portion; korma deducts chicken 200 g/portion)
     biryani = next(r for r in recipes if r["id"] == "chicken-biryani")
     korma = next(r for r in recipes if r["id"] == "chicken-korma")
     logic.deduct_for_dish(stock_by_id, biryani)
     logic.deduct_for_dish(stock_by_id, biryani)
     logic.deduct_for_dish(stock_by_id, korma)
-    assert stock_by_id["basmati-rice"]["qty"] == pytest.approx(9.6)
-    assert stock_by_id["chicken"]["qty"] == pytest.approx(3.8)
-    assert stock_by_id["onions"]["qty"] == pytest.approx(5.8)
-    assert stock_by_id["oil"]["qty"] == pytest.approx(4900)
+    assert stock_by_id["basmati-rice"]["qty"] == pytest.approx(9.0)
+    assert stock_by_id["chicken"]["qty"] == pytest.approx(3.05)
+    assert stock_by_id["onions"]["qty"] == pytest.approx(5.5)
+    assert stock_by_id["oil"]["qty"] == pytest.approx(4750)
     assert stock_by_id["cashews"]["qty"] == pytest.approx(1.44)
     assert stock_by_id["cream"]["qty"] == pytest.approx(1900)
     assert stock_by_id["garam-masala"]["qty"] == pytest.approx(245)
