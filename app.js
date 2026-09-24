@@ -44,26 +44,35 @@ function renderStock() {
     if (query && !ing.name.toLowerCase().includes(query)) continue;
 
     const row = document.createElement("tr");
+    const belowPar = Number(ing.qty) < Number(ing.par);
+    if (belowPar) row.classList.add("below-par");
 
     const name = document.createElement("td");
+    name.className = "name";
     name.textContent = ing.name;
     row.append(name);
 
     const qty = document.createElement("td");
-    qty.className = "num";
+    qty.className = "num qty";
     qty.textContent = ing.qty;
-    if (Number(ing.qty) < Number(ing.par)) {
-      qty.classList.add("low");
-      qty.title = "below par — reorder";
+    if (belowPar) {
+      // reorder flag: on the qty cell in the table view, carried onto the
+      // name row by the card layout, which hides the qty column's own look.
+      const badge = document.createElement("span");
+      badge.className = "low-badge";
+      badge.textContent = "below par";
+      badge.title = "below par — reorder";
+      qty.append(" ", badge);
     }
     row.append(qty);
 
     const unit = document.createElement("td");
+    unit.className = "unit";
     unit.textContent = ing.unit;
     row.append(unit);
 
     const par = document.createElement("td");
-    par.className = "num";
+    par.className = "num par";
     par.textContent = ing.par;
     row.append(par);
 
@@ -78,12 +87,14 @@ function renderStock() {
       actions.append(buildEditor(ing));
     } else {
       const editBtn = document.createElement("button");
+      editBtn.className = "btn-secondary";
       editBtn.textContent = "Edit";
       editBtn.onclick = () => {
         editingId = ing.id;
         render();
       };
       const delBtn = document.createElement("button");
+      delBtn.className = "btn-danger";
       delBtn.textContent = "Delete";
       delBtn.onclick = () => deleteIngredient(ing);
       actions.append(editBtn, delBtn);
@@ -105,34 +116,51 @@ function renderStock() {
 
 function buildEditor(ing) {
   const frag = document.createDocumentFragment();
+  const form = document.createElement("form");
+  form.className = "editing";
+
   const qtyIn = document.createElement("input");
   qtyIn.id = `edit-qty-${ing.id}`;
   qtyIn.value = ing.qty;
+  qtyIn.inputMode = "decimal";
+  qtyIn.setAttribute("aria-label", "Quantity");
+
   const parIn = document.createElement("input");
   parIn.id = `edit-par-${ing.id}`;
   parIn.value = ing.par;
+  parIn.inputMode = "decimal";
+  parIn.setAttribute("aria-label", "Par");
 
   const saveBtn = document.createElement("button");
+  saveBtn.type = "submit";
+  saveBtn.className = "btn-primary";
   saveBtn.textContent = "Save";
-  saveBtn.onclick = () =>
-    api("PUT", `/api/stock/${ing.id}`, {
-      qty: qtyIn.value,
-      par: parIn.value,
-    })
-      .then((snap) => {
-        editingId = null;
-        apply(snap);
-      })
-      .catch((err) => flash(err.message, true));
 
   const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "btn-secondary cancel";
   cancelBtn.textContent = "Cancel";
   cancelBtn.onclick = () => {
     editingId = null;
     render();
   };
 
-  frag.append(qtyIn, parIn, saveBtn, cancelBtn);
+  // Enter submits, Escape cancels (submit handler lives on the form)
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    api("PUT", `/api/stock/${ing.id}`, { qty: qtyIn.value, par: parIn.value })
+      .then((snap) => {
+        editingId = null;
+        apply(snap);
+      })
+      .catch((err) => flash(err.message, true));
+  };
+  form.onkeydown = (e) => {
+    if (e.key === "Escape") cancelBtn.click();
+  };
+
+  form.append(qtyIn, parIn, saveBtn, cancelBtn);
+  frag.append(form);
   return frag;
 }
 
@@ -226,30 +254,114 @@ async function addIngredient(event) {
   }
 }
 
-async function deleteIngredient(ing) {
-  const usage =
-    ing.used_by.length > 0
-      ? `\n\nIt is used by: ${ing.used_by.join(", ")}`
-      : "\n\nNo dish uses it.";
-  if (!window.confirm(`Delete ${ing.name}?${usage}`)) return;
-  try {
-    apply(await api("DELETE", `/api/stock/${ing.id}`));
-  } catch (err) {
-    flash(err.message, true); // e.g. the 409 for ingredients still in use
-  }
+function deleteIngredient(ing) {
+  // No confirm() dialog: delete immediately, offer Undo in the toast.
+  // Only unused ingredients can be deleted (the server 409s otherwise), so
+  // restoring via POST /api/stock cannot orphan any recipe reference — the
+  // id is slug-derived from the unique name, so it comes back identical.
+  api("DELETE", `/api/stock/${ing.id}`)
+    .then((snap) => {
+      apply(snap);
+      toastWithUndo(`Deleted ${ing.name}`, () => {
+        api("POST", "/api/stock", {
+          name: ing.name,
+          qty: ing.qty,
+          par: ing.par,
+          unit: ing.unit,
+        })
+          .then((restored) => {
+            apply(restored);
+            flash(`Restored ${ing.name}`);
+          })
+          .catch((err) => flash(err.message, true));
+      });
+    })
+    .catch((err) => {
+      // e.g. the 409 for ingredients still in use
+      flash(err.message, true);
+    });
 }
 
-// --- flash messages -----------------------------------------------------------
+// --- flash / toast messages -----------------------------------------------------
 
 let flashTimer = null;
-function flash(message, isError = false) {
-  const el = $("flash");
-  el.textContent = message;
-  el.className = "show" + (isError ? " error" : "");
+let flashCountdown = null;
+let flashDeadline = 0;
+
+function hideFlash() {
   clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => {
-    el.className = "";
-  }, 3000);
+  clearInterval(flashCountdown);
+  $("flash").className = "";
+}
+
+function renderFlash(message, { isError, action, actionLabel, seconds }) {
+  const el = $("flash");
+  el.innerHTML = "";
+
+  const msg = document.createElement("span");
+  msg.className = "flash-msg";
+  msg.textContent = message;
+  el.append(msg);
+
+  if (action) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = actionLabel;
+    btn.onclick = () => {
+      hideFlash();
+      action();
+    };
+    el.append(btn);
+  }
+
+  if (seconds > 0) {
+    const bar = document.createElement("span");
+    bar.className = "flash-bar";
+    el.append(bar);
+    flashDeadline = Date.now() + seconds * 1000;
+    // keep hover from hiding the toast while a countdown bar is running
+    el.onmouseenter = () => pauseFlash();
+    el.onmouseleave = () => resumeFlash();
+  } else {
+    el.onmouseenter = null;
+    el.onmouseleave = null;
+  }
+
+  el.className = "show" + (isError ? " error" : "");
+}
+
+function pauseFlash() {
+  clearTimeout(flashTimer);
+  clearInterval(flashCountdown);
+}
+
+function resumeFlash() {
+  if (flashDeadline <= Date.now()) return;
+  scheduleFlashHide();
+}
+
+function scheduleFlashHide() {
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(hideFlash, Math.max(0, flashDeadline - Date.now()));
+}
+
+function flash(message, isError = false) {
+  clearTimeout(flashTimer);
+  clearInterval(flashCountdown);
+  renderFlash(message, { isError, action: null, seconds: 3 });
+  scheduleFlashHide();
+}
+
+function toastWithUndo(message, undoFn) {
+  clearTimeout(flashTimer);
+  clearInterval(flashCountdown);
+  renderFlash(message, {
+    isError: false,
+    action: undoFn,
+    actionLabel: "Undo",
+    seconds: 6,
+  });
+  scheduleFlashHide();
 }
 
 // --- boot ------------------------------------------------------------------------

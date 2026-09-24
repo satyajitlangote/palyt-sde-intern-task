@@ -159,13 +159,48 @@ button:active { transform: scale(0.97); }
 }
 
 /* secondary buttons (table row actions, editor) */
-.row-actions button, .editing input ~ button, button.cancel {
+button.btn-secondary {
   color: var(--brand-strong);
   background: #fff;
   border-color: #99f6e4;
 }
-.row-actions button:hover, button.cancel:hover {
+button.btn-secondary:hover {
   background: var(--brand-soft);
+}
+
+/* danger variant (Delete) */
+button.btn-danger {
+  color: var(--danger);
+  background: #fff;
+  border-color: #fecdd3;
+}
+button.btn-danger:hover { background: var(--danger-soft); }
+
+/* save = primary, cancel = secondary */
+button.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  box-shadow: var(--shadow-sm);
+}
+button.btn-primary:hover { background: linear-gradient(135deg, #0d9488, #115e59); }
+
+/* comfortable tap targets, still compact in the table */
+button.btn-secondary,
+button.btn-danger,
+button.btn-primary {
+  min-height: 34px;
+  padding: 0.35rem 0.85rem;
+}
+button.btn-danger { margin-left: 0.35rem; }
+
+/* touch devices get bigger hit areas (44px, the HIG minimum) */
+@media (pointer: coarse) {
+  button.btn-secondary,
+  button.btn-danger,
+  button.btn-primary {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+  }
 }
 
 /* ============ stock panel ============ */
@@ -224,7 +259,144 @@ thead th:last-child  { border-radius: 0 8px 8px 0; }
 
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
 tbody tr:hover { background: var(--surface-2); }
-tbody td:last-child { text-align: right; white-space: nowrap; }
+tbody td:last-child { text-align: right; }
+
+/* edit row: inputs + buttons on one line that can wrap on narrow screens */
+.row-actions form.editing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.row-actions form.editing input {
+  width: 5rem;
+  min-width: 4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============ toast with undo ============ */
+
+#flash .flash-msg { display: block; }
+
+#flash button {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.9rem;
+  color: #134e4a;
+  background: #99f6e4;
+}
+#flash button:hover { background: #5eead4; }
+#flash.error button {
+  color: #fff;
+  background: rgb(255 255 255 / 0.2);
+  border-color: rgb(255 255 255 / 0.45);
+}
+#flash.error button:hover { background: rgb(255 255 255 / 0.32); }
+
+/* ============ card layout for the stock table on narrow screens ============ */
+
+@media (max-width: 640px) {
+  #stock-table thead {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #stock-table, #stock-table tbody {
+    display: block;
+    width: 100%;
+  }
+  #stock-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.1rem 0.6rem;
+    border: 1px solid var(--border);
+    border-left: 6px solid #14b8a6;
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    padding: 0.7rem 0.85rem;
+    margin-bottom: 0.65rem;
+  }
+  #stock-table tbody tr:hover { background: var(--surface); }
+  #stock-table tbody tr.below-par {
+    border-left-color: var(--warn);
+    background: var(--warn-soft);
+  }
+
+  #stock-table td { display: block; padding: 0.1rem 0; border: none; }
+
+  /* name: top-left, bold */
+  #stock-table td.name {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* qty: top-right, with its unit */
+  #stock-table td.num {
+    grid-column: 2;
+    font-weight: 700;
+    background: none;
+    padding: 0.1rem 0;
+    border-radius: 0;
+  }
+  #stock-table td.qty { grid-row: 1; }
+  #stock-table td.qty .low-badge { font-size: 0.72rem; margin-left: 0.3rem; }
+
+  /* used-by line, full width, second row */
+  #stock-table td.used-by {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    white-space: normal;
+  }
+  #stock-table td.used-by::before {
+    content: "Used by: ";
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* par line, full width, third row */
+  #stock-table td.par {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  #stock-table td.par::before {
+    content: "Par: ";
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  #stock-table td.par .low-badge { font-size: 0.72rem; margin-left: 0.3rem; }
+
+  /* unit is shown inside the qty cell via its data-label suffix */
+  #stock-table td.unit { display: none; }
+
+  /* actions: full width, bottom, left-aligned, touch-friendly */
+  #stock-table td.row-actions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 0.45rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* edit form takes the whole card width */
+  #stock-table td.row-actions form.editing {
+    display: flex;
+    width: 100%;
+  }
+  #stock-table td.row-actions form.editing input { flex: 1; width: auto; }
+}
+
+@media (max-width: 900px) {
+  td.row-actions,
+  td.used-by { white-space: normal; }
+}
 
 td.num {
   text-align: right;
@@ -242,19 +414,35 @@ td.num {
   padding: 0.1rem 0.4rem;
 }
 
-.row-actions button {
-  padding: 0.3rem 0.7rem;
-  font-size: 0.8rem;
+.low-badge {
+  display: inline-block;
+  color: var(--warn);
+  font-weight: 700;
+  background: var(--warn-soft);
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.78rem;
 }
-.row-actions button:last-child {
-  color: var(--danger);
-  border-color: #fecdd3;
-  margin-left: 0.25rem;
-}
-.row-actions button:last-child:hover { background: var(--danger-soft); }
 
-.editing input { width: 4.5rem; }
-.editing input:not(:last-child) { margin-right: 0.25rem; }
+/* toast progress bar */
+#flash .flash-bar {
+  display: block;
+  height: 3px;
+  margin-top: 0.5rem;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.55);
+  transform-origin: left;
+  animation: flash-bar 3s linear forwards;
+}
+@keyframes flash-bar {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+.row-actions { white-space: nowrap; }
+.row-actions .btn-secondary,
+.row-actions .btn-danger,
+.row-actions .btn-primary { font-size: 0.8rem; }
 
 /* ============ menu panel ============ */
 
@@ -342,5 +530,6 @@ td.num {
 #flash.show {
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
 }
 #flash.error { background: var(--danger); }

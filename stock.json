@@ -2,7 +2,7 @@
   {
     "id": "basmati-rice",
     "name": "Basmati Rice",
-    "qty": 10,
+    "qty": 9.4,
     "unit": "kg",
     "par": 2
   },
@@ -37,16 +37,16 @@
   {
     "id": "onions",
     "name": "Onions",
-    "qty": 6,
+    "qty": 5.7,
     "unit": "kg",
     "par": 2
   },
   {
     "id": "garlic",
     "name": "Garlic",
-    "qty": 400,
+    "qty": 400.0,
     "unit": "g",
-    "par": 100
+    "par": 100.0
   },
   {
     "id": "ginger",
@@ -58,7 +58,7 @@
   {
     "id": "chicken",
     "name": "Chicken",
-    "qty": 4.5,
+    "qty": 3.75,
     "unit": "kg",
     "par": 2
   },
@@ -114,7 +114,7 @@
   {
     "id": "oil",
     "name": "Oil",
-    "qty": 5000,
+    "qty": 4850.0,
     "unit": "ml",
     "par": 1000
   },
@@ -138,12 +138,5 @@
     "qty": 500.0,
     "unit": "ml",
     "par": 100.0
-  },
-  {
-    "id": "jeera-rice",
-    "name": "Jeera Rice",
-    "unit": "kg",
-    "qty": 10.0,
-    "par": 8.0
   }
 ]
