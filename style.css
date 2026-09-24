@@ -1,77 +1,346 @@
-/* Clear beats polished. Grid = the two panels side by side. */
-* { box-sizing: border-box; }
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0 1rem;
-  color: #1a1a1a;
+/* ============================================================
+   Kitchen Stock & Menu Sync — visual theme
+   ============================================================ */
+
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+
+  --brand: #0f766e;        /* teal 700 */
+  --brand-strong: #115e59; /* teal 800 */
+  --brand-soft: #ccfbf1;   /* teal 100 */
+
+  --danger: #be123c;
+  --danger-soft: #fff1f2;
+  --warn: #b45309;
+  --warn-soft: #fffbeb;
+
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.08);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08), 0 2px 4px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 10px 30px rgb(15 23 42 / 0.18);
 }
-header h1 { font-size: 1.2rem; display: inline-block; margin-right: 1rem; }
-#conn-status { font-size: 0.8rem; color: #777; }
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 500px at 85% -10%, #99f6e4 0%, transparent 60%),
+    radial-gradient(900px 400px at -10% 0%, #bae6fd 0%, transparent 55%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+/* ============ header ============ */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(120deg, #134e4a, #0f766e 55%, #14b8a6);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+#conn-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #99f6e4;
+  background: rgb(255 255 255 / 0.14);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+}
 
 main {
+  max-width: 1200px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1.25rem;
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: start;
 }
 @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
 
-h2 { font-size: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
+section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.25rem 1.35rem;
+  animation: rise 0.35s ease both;
+}
 
-/* stock panel */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+h2::before {
+  content: "";
+  width: 8px;
+  height: 22px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #14b8a6, #0f766e);
+}
+
+/* ============ inputs ============ */
+
+input, select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+input::placeholder { color: #94a3b8; }
+
+input:focus, select:focus {
+  outline: none;
+  background: #fff;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgb(20 184 166 / 0.18);
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.08s, box-shadow 0.15s;
+}
+
+button:active { transform: scale(0.97); }
+
+/* primary buttons: form submit + dish Order */
+#add-form button, .dish button {
+  color: #fff;
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  box-shadow: var(--shadow-sm);
+}
+#add-form button:hover, .dish button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0d9488, #115e59);
+  box-shadow: var(--shadow-md);
+}
+
+/* secondary buttons (table row actions, editor) */
+.row-actions button, .editing input ~ button, button.cancel {
+  color: var(--brand-strong);
+  background: #fff;
+  border-color: #99f6e4;
+}
+.row-actions button:hover, button.cancel:hover {
+  background: var(--brand-soft);
+}
+
+/* ============ stock panel ============ */
+
 #add-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.9rem;
 }
-#add-form input, #add-form select { padding: 0.3rem; }
-#f-name { width: 10rem; }
-#f-qty, #f-par { width: 4.5rem; }
-#add-form button { padding: 0.3rem 0.8rem; cursor: pointer; }
-.error { color: #b00020; font-size: 0.8rem; }
-#search { width: 100%; padding: 0.35rem; margin-bottom: 0.5rem; }
+#add-form input, #add-form select { padding: 0.5rem 0.65rem; }
+#f-name { width: 11rem; }
+#f-qty, #f-par { width: 5rem; }
+#f-unit { width: 4.5rem; }
 
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th, td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid #e3e3e3; }
-th { font-weight: 600; color: #444; }
-td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.used-by { color: #777; font-size: 0.78rem; }
-.low { color: #b45309; font-weight: 600; }
+.error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+  width: 100%;
+}
 
-.row-actions button { margin-right: 0.25rem; }
+#search {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding-left: 2.2rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'><circle cx='7' cy='7' r='5'/><path d='m11 11 3.5 3.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: 0.7rem center;
+}
+
+/* ============ table ============ */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+th, td { text-align: left; padding: 0.55rem 0.6rem; }
+
+thead th {
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+thead th:first-child { border-radius: 8px 0 0 8px; padding-left: 0.75rem; }
+thead th:last-child  { border-radius: 0 8px 8px 0; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+tbody tr:hover { background: var(--surface-2); }
+tbody td:last-child { text-align: right; white-space: nowrap; }
+
+td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.used-by { color: var(--text-muted); font-size: 0.78rem; }
+
+.low {
+  color: var(--warn);
+  font-weight: 700;
+  background: var(--warn-soft);
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+}
+
+.row-actions button {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+.row-actions button:last-child {
+  color: var(--danger);
+  border-color: #fecdd3;
+  margin-left: 0.25rem;
+}
+.row-actions button:last-child:hover { background: var(--danger-soft); }
+
 .editing input { width: 4.5rem; }
+.editing input:not(:last-child) { margin-right: 0.25rem; }
 
-/* menu panel */
+/* ============ menu panel ============ */
+
 .dish {
-  border: 1px solid #ddd;
-  border-left: 6px solid #2e7d32;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.5rem;
+  position: relative;
+  border: 1px solid var(--border);
+  border-left: 6px solid #14b8a6;
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.65rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: rise 0.3s ease both;
 }
-.dish.unavailable { border-left-color: #b00020; background: #faf5f5; }
+.dish:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.dish.unavailable {
+  border-left-color: var(--danger);
+  background: var(--danger-soft);
+}
+.dish.unavailable:hover { transform: none; box-shadow: var(--shadow-sm); }
+
 .dish .dish-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 0.5rem;
 }
-.dish .price { font-variant-numeric: tabular-nums; }
-.dish .note { font-size: 0.78rem; color: #777; margin: 0.15rem 0 0.4rem; }
-.dish .warn { color: #b45309; }
-.dish button { cursor: pointer; }
-.dish.unavailable button { background: #eee; color: #999; border: 1px solid #ccc; }
+.dish .dish-head strong { font-size: 1rem; }
+
+.dish .price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--brand-strong);
+  background: var(--brand-soft);
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.dish.unavailable .price {
+  color: var(--text-muted);
+  background: #e2e8f0;
+  text-decoration: line-through;
+}
+
+.dish .note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0.6rem;
+}
+.dish .warn {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.dish button { padding: 0.4rem 1rem; font-size: 0.85rem; }
+.dish button:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* ============ flash toast ============ */
 
 #flash {
   position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  background: #2c3e50;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 20;
+  background: #134e4a;
   color: #fff;
-  padding: 0.5rem 0.9rem;
+  padding: 0.65rem 1rem;
   font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
   opacity: 0;
-  transition: opacity 0.2s;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.25s, transform 0.25s;
   max-width: 28rem;
 }
-#flash.show { opacity: 1; }
-#flash.error { background: #b00020; }
+#flash.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#flash.error { background: var(--danger); }
