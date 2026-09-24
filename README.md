@@ -5,6 +5,14 @@ stock, and the order flow connecting them. Flask + vanilla JS, no build step.
 State is in-memory at request time and written back to `stock.json` on every
 mutation, so a refresh (or a second tab) sees the same numbers.
 
+
+
+
+https://github.com/user-attachments/assets/6171fbad-0839-4438-a83e-99417779a241
+
+
+
+
 ## Setup & Run
 
 ```bash
